@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>my plans</title>
+    <style>
+        /* ===== 全局变量 ===== */
+        :root {
+            --bg: #fdfaf6;
+            --bg2: #ffffff;
+            --bg3: #f7f2ec;
+            --text: #3a3a3a;
+            --text2: #6b6b6b;
+            --text3: #a8a8a8;
+            --border: #ece6de;
+            --radius: 20px;
+            --radius-sm: 14px;
+            --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro SC", "Helvetica Neue", "PingFang SC", system-ui, "Segoe UI", Roboto, sans-serif;
+            --font-num: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "PingFang SC", system-ui, sans-serif;
+            --transition: 0.25s ease;
+            --accent: #e8c4b8;
+            --accent-light: #f5e6e0;
+            --accent-dark: #d4a89a;
+            --shadow: 0 4px 20px rgba(180, 160, 140, 0.08);
+            --shadow-sm: 0 2px 8px rgba(180, 160, 140, 0.06);
+            --done-opacity: 0.45;
+            --card-white: #ffffff;
+        }
+
+        [data-accent="apricot"] { --bg: #fdf8f2; --accent: #f0c8a8; --accent-light: #faead8; --accent-dark: #d8a87a; }
+        [data-accent="mint"] { --bg: #f6faf8; --accent: #b8d8c8; --accent-light: #e0f0e8; --accent-dark: #8ab8a0; }
+        [data-accent="mist"] { --bg: #f5f8fa; --accent: #b8c8d8; --accent-light: #e0e8f0; --accent-dark: #8aa0b8; }
+        [data-accent="lotus"] { --bg: #faf6f8; --accent: #d8b8c8; --accent-light: #f0e0e8; --accent-dark: #b88aa0; }
+
+        [data-theme="dark"] {
+            --bg: #1e1c1a; --bg2: #2a2826; --bg3: #33302d;
+            --text: #e8e4e0; --text2: #b0aaa4; --text3: #7a7470;
+            --border: #3a3633; --shadow: 0 4px 20px rgba(0,0,0,0.3);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.2); --card-white: #2a2826;
+        }
+        [data-theme="dark"][data-accent="apricot"] { --bg: #1e1a16; }
+        [data-theme="dark"][data-accent="mint"] { --bg: #161e1a; }
+        [data-theme="dark"][data-accent="mist"] { --bg: #161a1e; }
+        [data-theme="dark"][data-accent="lotus"] { --bg: #1e161a; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            padding: 16px;
+            line-height: 1.6;
+            transition: background var(--transition), color var(--transition);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .app { max-width: 680px; width: 100%; padding-bottom: 90px; }
+
+        /* ===== 顶部时间 ===== */
+        .time-header {
+            text-align: center;
+            padding: 20px 0 16px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        .time-date {
+            font-size: 14px; color: var(--text2);
+            letter-spacing: 1.5px; font-family: var(--font); margin-bottom: 2px;
+        }
+        .time-clock {
+            font-size: 42px; font-family: var(--font-num);
+            color: var(--text); letter-spacing: 2px;
+            font-weight: 300; line-height: 1.2;
+        }
+        .time-clock .sec { font-size: 24px; color: var(--text3); letter-spacing: 1px; }
+
+        /* ===== 进度条 ===== */
+        .progress-wrap { margin-bottom: 18px; }
+        .progress-info {
+            display: flex; justify-content: space-between;
+            font-size: 13px; color: var(--text3);
+            margin-bottom: 6px; font-family: var(--font);
+        }
+        .progress-bar { height: 4px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+        .progress-fill {
+            height: 100%; background: var(--accent); border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        /* ===== 计划列表 ===== */
+        .task-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+        .task-card {
+            background: var(--card-white);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .task-card:hover { box-shadow: var(--shadow); }
+        .task-card.done { opacity: var(--done-opacity); background: var(--bg3); }
+        .task-card.done .task-text { text-decoration: line-through; text-decoration-color: var(--text3); }
+
+        .drag-handle {
+            flex-shrink: 0;
+            width: 20px;
+            height: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 3px;
+            cursor: grab;
+            opacity: 0.5;
+            margin-top: 1px;
+        }
+        .drag-handle:active { cursor: grabbing; }
+        .drag-handle span { display: block; width: 14px; height: 2px; background: var(--text3); border-radius: 2px; }
+
+        .task-body { flex: 1; min-width: 0; }
+        .task-main {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .task-text {
+            font-size: 16px;
+            color: var(--text);
+            font-family: var(--font);
+            word-break: break-word;
+            line-height: 1.5;
+        }
+        .task-time {
+            font-size: 13px;
+            color: var(--text3);
+            font-family: var(--font-num);
+            flex-shrink: 0;
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+        .task-note {
+            font-size: 12px;
+            color: var(--text3);
+            margin-top: 2px;
+            font-family: var(--font);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .task-reminder {
+            font-size: 11px;
+            color: var(--accent-dark);
+            margin-top: 3px;
+            font-family: var(--font);
+            opacity: 0.8;
+        }
+        .task-badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 20px;
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            color: var(--text3);
+            padding: 40px 0;
+            font-size: 15px;
+            font-family: var(--font);
+            letter-spacing: 0.5px;
+        }
+
+        /* 快速添加 */
+        .quick-add {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .quick-add input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            background: var(--bg2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 15px;
+            outline: none;
+            transition: var(--transition);
+        }
+        .quick-add input:focus { border-color: var(--accent); }
+        .quick-add input::placeholder { color: var(--text3); }
+        .quick-add button {
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            font-family: var(--font);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .quick-add button:hover { background: var(--accent); color: #fff; }
+
+        /* ===== 底部栏 ===== */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 12px 12px;
+            z-index: 100;
+            max-width: 680px;
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+        }
+        .bottom-bar .nav-btn {
+            background: none;
+            border: none;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-family: var(--font);
+            color: var(--text3);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            border-radius: 10px;
+            min-width: 48px;
+        }
+        .bottom-bar .nav-btn.active { color: var(--accent-dark); }
+        .bottom-bar .nav-btn .icon { font-size: 20px; line-height: 1; }
+        .bottom-bar .nav-btn .label { font-size: 10px; letter-spacing: 0.3px; }
+
+        .bottom-bar .add-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            flex-shrink: 0;
+        }
+        .bottom-bar .add-btn:hover { background: var(--accent-dark); transform: scale(1.04); }
+
+        /* ===== 页面切换 ===== */
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== 日历页 ===== */
+        .cal-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .cal-nav .month-label { font-size: 18px; letter-spacing: 0.5px; font-family: var(--font); }
+        .cal-nav .nav-btn {
+            background: none; border: 1px solid var(--border);
+            border-radius: 40px; padding: 4px 18px;
+            font-size: 14px; font-family: var(--font);
+            color: var(--text2); cursor: pointer; transition: var(--transition);
+        }
+        .cal-nav .nav-btn:hover { background: var(--bg3); }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 20px;
+        }
+        .cal-grid .weekday {
+            text-align: center; font-size: 13px; color: var(--text3);
+            padding: 4px 0; font-family: var(--font);
+        }
+        .cal-day {
+            aspect-ratio: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            border-radius: var(--radius-sm);
+            background: var(--bg2);
+            font-size: 14px;
+            color: var(--text2);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            border: 1px solid transparent;
+            min-height: 40px;
+            font-family: var(--font);
+        }
+        .cal-day:hover { border-color: var(--accent); transform: translateY(-1px); }
+        .cal-day.empty { background: none; cursor: default; }
+        .cal-day.has-plan { border-color: var(--accent-light); }
+        .cal-day.today { border-color: var(--accent); background: var(--accent-light); }
+        .cal-day .day-num { font-size: 14px; }
+        .cal-day .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent); margin-top: 2px;
+        }
+        .cal-day .dot.empty-dot { background: transparent; border: 1.5px solid var(--accent); }
+
+        /* 热力图 */
+        .heatmap-section { margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .heatmap-title { font-size: 14px; color: var(--text3); margin-bottom: 10px; font-family: var(--font); }
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(53, 1fr);
+            gap: 2px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .heat-cell {
+            aspect-ratio: 1; border-radius: 2px;
+            background: var(--bg3); min-width: 8px; min-height: 8px;
+            cursor: pointer; transition: var(--transition);
+            border: 1px solid transparent;
+        }
+        .heat-cell:hover { border-color: var(--text3); }
+        .heat-cell.has-plan { background: var(--accent); }
+        .heat-cell.has-plan.high { background: var(--accent-dark); }
+
+        /* ===== 统计页 ===== */
+        .pie-wrap { display: flex; justify-content: center; padding: 20px 0; }
+        .pie-chart { width: 200px; height: 200px; }
+        .pie-center {
+            font-size: 14px; fill: var(--text); font-family: var(--font);
+            text-anchor: middle; dominant-baseline: central;
+        }
+        .stat-cards { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+        .stat-card {
+            flex: 1; min-width: 120px; background: var(--bg2);
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            padding: 14px 16px; text-align: center;
+        }
+        .stat-card .num { font-size: 28px; font-family: var(--font-num); color: var(--text); }
+        .stat-card .label { font-size: 12px; color: var(--text3); font-family: var(--font); }
+
+        .search-box { display: flex; gap: 8px; margin-bottom: 12px; }
+        .search-box input {
+            flex: 1; padding: 10px 14px; border: 1px solid var(--border);
+            border-radius: 40px; background: var(--bg2); color: var(--text);
+            font-family: var(--font); font-size: 14px; outline: none;
+        }
+        .search-box input:focus { border-color: var(--accent); }
+        .search-results { display: flex; flex-direction: column; gap: 8px; }
+        .search-result-item {
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 10px 14px;
+            cursor: pointer; transition: var(--transition);
+            font-size: 14px; font-family: var(--font);
+        }
+        .search-result-item:hover { background: var(--bg3); }
+        .search-result-item .res-date { font-size: 11px; color: var(--text3); }
+
+        /* ===== 设置页 ===== */
+        .settings-group { margin-bottom: 24px; }
+        .settings-group h3 { font-size: 15px; font-weight: 400; color: var(--text2); margin-bottom: 10px; font-family: var(--font); letter-spacing: 0.3px; }
+        .settings-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid var(--border);
+            font-size: 15px; font-family: var(--font);
+        }
+        .settings-row:last-child { border-bottom: none; }
+
+        .accent-options { display: flex; gap: 10px; flex-wrap: wrap; }
+        .accent-dot {
+            width: 36px; height: 36px; border-radius: 50%;
+            cursor: pointer; border: 2px solid transparent;
+            transition: var(--transition);
+        }
+        .accent-dot:hover { transform: scale(1.1); }
+        .accent-dot.active { border-color: var(--text); }
+
+        .toggle-switch {
+            width: 44px; height: 24px; border-radius: 20px;
+            background: var(--bg3); position: relative;
+            cursor: pointer; transition: var(--transition);
+        }
+        .toggle-switch.on { background: var(--accent); }
+        .toggle-switch::after {
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: #fff; transition: var(--transition);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .toggle-switch.on::after { left: 22px; }
+
+        .btn-sm {
+            padding: 6px 16px; border: 1px solid var(--border);
+            border-radius: 40px; background: var(--bg2);
+            color: var(--text2); font-family: var(--font); font-size: 13px;
+            cursor: pointer; transition: var(--transition);
+        }
+        .btn-sm:hover { background: var(--bg3); }
+        .btn-sm.danger { color: #c47a7a; border-color: #c47a7a; }
+        .btn-sm.danger:hover { background: #c47a7a20; }
+
+        /* ===== 底部弹层 ===== */
+        .sheet-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.2); backdrop-filter: blur(2px);
+            z-index: 200; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+        .sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--bg2); border-radius: 24px 24px 0 0;
+            padding: 20px 20px 32px; z-index: 201;
+            transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            max-width: 680px; margin: 0 auto;
+            max-height: 80vh; overflow-y: auto;
+        }
+        .sheet.open { transform: translateY(0); }
+        .sheet-handle {
+            width: 40px; height: 4px; border-radius: 4px;
+            background: var(--border); margin: 0 auto 16px;
+        }
+        .sheet-title { font-size: 17px; font-family: var(--font); margin-bottom: 4px; }
+        .sheet-subtitle { font-size: 13px; color: var(--text3); margin-bottom: 14px; font-family: var(--font); }
+        .sheet-task-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .sheet-task {
+            display: flex; align-items: flex-start; gap: 8px;
+            padding: 10px 12px; border-radius: var(--radius-sm);
+            background: var(--bg3); font-size: 14px; font-family: var(--font);
+        }
+        .sheet-task .st-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+        .sheet-task.done-item { opacity: 0.6; }
+        .sheet-task.done-item .st-text { text-decoration: line-through; }
+        .sheet-task .st-text { flex: 1; }
+        .sheet-close {
+            width: 100%; padding: 12px; border: 1px solid var(--border);
+            border-radius: 40px; background: var(--bg3); color: var(--text2);
+            font-family: var(--font); font-size: 15px; cursor: pointer;
+            transition: var(--transition);
+        }
+        .sheet-close:hover { background: var(--border); }
+
+        /* ===== 右键菜单 ===== */
+        .context-menu {
+            position: fixed; z-index: 300;
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); box-shadow: var(--shadow);
+            padding: 6px; min-width: 140px;
+            opacity: 0; pointer-events: none; transition: opacity 0.15s;
+            font-family: var(--font);
+        }
+        .context-menu.open { opacity: 1; pointer-events: auto; }
+        .context-menu button {
+            display: block; width: 100%; text-align: left;
+            background: none; border: none; padding: 8px 12px;
+            font-size: 14px; font-family: var(--font); color: var(--text);
+            cursor: pointer; border-radius: 8px; transition: var(--transition);
+        }
+        .context-menu button:hover { background: var(--bg3); }
+        .context-menu button.danger { color: #c47a7a; }
+
+        /* ===== 新建弹层 ===== */
+        .new-sheet .picker-row {
+            display: flex; justify-content: center; gap: 10px;
+            margin: 16px 0; padding: 8px 0;
+        }
+        .picker-col {
+            display: flex; flex-direction: column; align-items: center;
+            height: 120px; overflow-y: auto; scroll-snap-type: y mandatory;
+            width: 64px; position: relative;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .picker-col::-webkit-scrollbar { display: none; }
+        .picker-col .picker-item {
+            height: 40px; line-height: 40px; flex-shrink: 0;
+            scroll-snap-align: center;
+            font-family: var(--font-num); font-size: 20px;
+            color: var(--text3); cursor: pointer;
+            transition: color 0.15s;
+            width: 100%; text-align: center;
+        }
+        .picker-col .picker-item.selected {
+            color: var(--text); font-weight: 500;
+        }
+
+        .time-toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 0; border-bottom: 1px solid var(--border);
+            margin-bottom: 12px;
+        }
+        .time-toggle-row .label { font-size: 15px; font-family: var(--font); color: var(--text2); }
+        .time-picker-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; }
+
+        .new-sheet input[type="text"], .new-sheet textarea {
+            width: 100%; padding: 12px 14px; border: 1px solid var(--border);
+            border-radius: var(--radius-sm); background: var(--bg3); color: var(--text);
+            font-family: var(--font); font-size: 15px; outline: none;
+            margin-bottom: 10px; resize: vertical;
+        }
+        .new-sheet input[type="text"]:focus, .new-sheet textarea:focus { border-color: var(--accent); }
+        .new-sheet textarea { min-height: 60px; }
+        .new-sheet .form-label {
+            font-size: 13px; color: var(--text3); margin-bottom: 4px;
+            display: block; font-family: var(--font);
+        }
+        .new-sheet .sheet-actions {
+            display: flex; gap: 10px; margin-top: 12px;
+        }
+        .new-sheet .sheet-actions button {
+            flex: 1; padding: 12px; border-radius: 40px;
+            font-family: var(--font); font-size: 15px; cursor: pointer;
+            transition: var(--transition); border: 1px solid var(--border);
+            background: var(--bg3); color: var(--text2);
+        }
+        .new-sheet .sheet-actions .primary {
+            background: var(--accent); color: #fff; border-color: var(--accent);
+        }
+        .new-sheet .sheet-actions .primary:hover { background: var(--accent-dark); }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 480px) {
+            .time-clock { font-size: 34px; }
+            .cal-day { min-height: 34px; font-size: 12px; }
+            .heatmap-grid { grid-template-columns: repeat(28, 1fr); }
+            .bottom-bar .nav-btn { min-width: 40px; padding: 6px 6px; }
+            .bottom-bar .nav-btn .icon { font-size: 18px; }
+            .bottom-bar .nav-btn .label { font-size: 9px; }
+            .bottom-bar .add-btn { width: 44px; height: 44px; font-size: 24px; }
+        }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg3); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 20px; }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+
+        <!-- ===== 今日页 ===== -->
+        <div class="page active" id="page-today">
+            <div class="time-header">
+                <div class="time-date" id="todayDateText">——</div>
+                <div class="time-clock" id="clockText">00:00<span class="sec">:00</span></div>
+            </div>
+
+            <div class="progress-wrap">
+                <div class="progress-info">
+                    <span id="progressLabel">今日 0/0</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div class="task-list" id="taskList"></div>
+            <div class="quick-add">
+                <input type="text" id="quickAddInput" placeholder="快速添加今日计划…" maxlength="60">
+                <button id="quickAddBtn">添加</button>
+            </div>
+        </div>
+
+        <!-- ===== 日历页 ===== -->
+        <div class="page" id="page-calendar">
+            <div class="cal-nav">
+                <button class="nav-btn" id="calPrev">‹</button>
+                <span class="month-label" id="calMonthLabel">2026年 1月</span>
+                <button class="nav-btn" id="calNext">›</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+
+            <div class="heatmap-section">
+                <div class="heatmap-title">年度热力图</div>
+                <div class="heatmap-grid" id="heatmapGrid"></div>
+            </div>
+        </div>
+
+        <!-- ===== 统计页 ===== -->
+        <div class="page" id="page-stats">
+            <div class="pie-wrap">
+                <svg class="pie-chart" viewBox="0 0 200 200" id="pieChart"></svg>
+            </div>
+            <div class="stat-cards">
+                <div class="stat-card">
+                    <div class="num" id="statTotal">0</div>
+                    <div class="label">总计划</div>
+                </div>
+                <div class="stat-card">
+                    <div class="num" id="statDone">0</div>
+                    <div class="label">已完成</div>
+                </div>
+                <div class="stat-card">
+                    <div class="num" id="statRate">0%</div>
+                    <div class="label">完成率</div>
+                </div>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索计划文字或日期…">
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+
+        <!-- ===== 设置页 ===== -->
+        <div class="page" id="page-settings">
+            <div class="settings-group">
+                <h3>主色调</h3>
+                <div class="accent-options" id="accentOptions">
+                    <div class="accent-dot active" data-accent="cream" style="background:#e8c4b8;" title="奶油白"></div>
+                    <div class="accent-dot" data-accent="apricot" style="background:#f0c8a8;" title="浅杏"></div>
+                    <div class="accent-dot" data-accent="mint" style="background:#b8d8c8;" title="浅薄荷"></div>
+                    <div class="accent-dot" data-accent="mist" style="background:#b8c8d8;" title="浅雾蓝"></div>
+                    <div class="accent-dot" data-accent="lotus" style="background:#d8b8c8;" title="浅藕粉"></div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>偏好</h3>
+                <div class="settings-row">
+                    <span>深色模式</span>
+                    <div class="toggle-switch" id="darkModeToggle"></div>
+                </div>
+                <div class="settings-row">
+                    <span>自动顺延未完成计划</span>
+                    <div class="toggle-switch on" id="carryOverToggle"></div>
+                </div>
+                <div class="settings-row">
+                    <span>滚轮音效</span>
+                    <div class="toggle-switch on" id="soundToggle"></div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>数据</h3>
+                <div class="settings-row">
+                    <span>导出备份</span>
+                    <button class="btn-sm" id="exportBtn">导出 JSON</button>
+                </div>
+                <div class="settings-row">
+                    <span>导入备份</span>
+                    <button class="btn-sm" id="importBtn">导入 JSON</button>
+                </div>
+                <div class="settings-row">
+                    <span>清除全部数据</span>
+                    <button class="btn-sm danger" id="clearBtn">清除</button>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>关于</h3>
+                <div class="settings-row" style="border-bottom:none;font-size:13px;color:var(--text3);">
+                    my plans · 纯本地存储 · 数据不上传
+                </div>
+                <div class="settings-row" style="border-bottom:none;font-size:12px;color:var(--text3);">
+                    数据仅存本机，建议定期导出备份
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 底部栏 ===== -->
+        <div class="bottom-bar">
+            <button class="nav-btn active" data-page="today">
+                <span class="icon">📋</span>
+                <span class="label">今日</span>
+            </button>
+            <button class="nav-btn" data-page="calendar">
+                <span class="icon">📅</span>
+                <span class="label">日历</span>
+            </button>
+            <button class="add-btn" id="addBtn">＋</button>
+            <button class="nav-btn" data-page="stats">
+                <span class="icon">📊</span>
+                <span class="label">统计</span>
+            </button>
+            <button class="nav-btn" data-page="settings">
+                <span class="icon">⚙️</span>
+                <span class="label">设置</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== 底部弹层（查看某天详情） ===== -->
+    <div class="sheet-overlay" id="sheetOverlay"></div>
+    <div class="sheet" id="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title" id="sheetTitle"></div>
+        <div class="sheet-subtitle" id="sheetSubtitle"></div>
+        <div class="sheet-task-list" id="sheetTaskList"></div>
+        <button class="sheet-close" id="sheetClose">关闭</button>
+    </div>
+
+    <!-- ===== 新建弹层 ===== -->
+    <div class="sheet-overlay" id="newOverlay"></div>
+    <div class="sheet new-sheet" id="newSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">新建计划</div>
+        <div class="sheet-subtitle" id="newDateLabel"></div>
+
+        <!-- 日期选择：只有月、日（年份固定当前年） -->
+        <div class="picker-row" id="pickerRow">
+            <div class="picker-col" id="pickerMonth"></div>
+            <div class="picker-col" id="pickerDay"></div>
+        </div>
+
+        <!-- 时间开关 -->
+        <div class="time-toggle-row">
+            <span class="label">添加时间</span>
+            <div class="toggle-switch" id="timeToggle"></div>
+        </div>
+
+        <!-- 时间选择（默认隐藏） -->
+        <div class="time-picker-row" id="timePickerRow" style="display:none;">
+            <div class="picker-col" id="pickerHour"></div>
+            <div class="picker-col" id="pickerMinute"></div>
+        </div>
+
+        <span class="form-label">计划内容</span>
+        <input type="text" id="newTaskText" placeholder="写下你的计划…" maxlength="60">
+        <span class="form-label">备注（可选）</span>
+        <textarea id="newTaskNote" placeholder="补充说明或总结…" maxlength="200"></textarea>
+
+        <div class="sheet-actions">
+            <button id="newCancel">取消</button>
+            <button class="primary" id="newSave">保存</button>
+        </div>
+    </div>
+
+    <!-- ===== 右键菜单 ===== -->
+    <div class="context-menu" id="contextMenu">
+        <button id="ctxEdit">编辑</button>
+        <button id="ctxNote">备注</button>
+        <button id="ctxCopyTomorrow">复制到明天</button>
+        <button class="danger" id="ctxDelete">删除</button>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ===== 数据层 =====
+            const STORAGE_KEY = 'my_plans_data';
+            const SETTINGS_KEY = 'my_plans_settings';
+
+            function getToday() {
+                const d = new Date();
+                return d.getFullYear() + '-' +
+                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(d.getDate()).padStart(2, '0');
+            }
+
+            function getAllData() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) return JSON.parse(raw);
+                } catch (_) {}
+                return [];
+            }
+
+            function saveAllData(data) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            }
+
+            function getSettings() {
+                try {
+                    const raw = localStorage.getItem(SETTINGS_KEY);
+                    if (raw) return JSON.parse(raw);
+                } catch (_) {}
+                return { accent: 'cream', dark: false, carryOver: true, sound: true };
+            }
+
+            function saveSettings(s) {
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+            }
+
+            function getTasksByDate(date) {
+                const all = getAllData();
+                return all.filter(t => t.date === date).sort((a, b) => a.order - b.order);
+            }
+
+            function saveTask(date, text, note, time, isDone, order) {
+                const all = getAllData();
+                const task = {
+                    id: Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                    date, text, note: note || '', time: time || '',
+                    done: isDone || false, order: order || 0,
+                    carriedFrom: null, carriedDays: 0
+                };
+                all.push(task);
+                saveAllData(all);
+                return task;
+            }
+
+            function updateTask(task) {
+                const all = getAllData();
+                for (let i = 0; i < all.length; i++) {
+                    if (all[i].id === task.id) { all[i] = task; break; }
+                }
+                saveAllData(all);
+            }
+
+            function deleteTask(id) {
+                let all = getAllData();
+                all = all.filter(t => t.id !== id);
+                saveAllData(all);
+            }
+
+            // ===== 顺延逻辑 =====
+            function getYesterday(dateStr) {
+                const d = new Date(dateStr + 'T12:00:00');
+                d.setDate(d.getDate() - 1);
+                return d.getFullYear() + '-' +
+                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(d.getDate()).padStart(2, '0');
+            }
+
+            function carryOverTasks() {
+                const settings = getSettings();
+                if (!settings.carryOver) return;
+                const today = getToday();
+                const yesterday = getYesterday(today);
+                const yesterdayTasks = getTasksByDate(yesterday);
+                const todayTasks = getTasksByDate(today);
+                const allData = getAllData();
+                let changed = false;
+
+                for (const yt of yesterdayTasks) {
+                    if (yt.done) continue;
+                    if (yt.date !== yesterday) continue;
+                    const exists = todayTasks.some(t => t.text === yt.text && t.carriedFrom);
+                    if (exists) continue;
+
+                    const carriedDays = (yt.carriedDays || 0) + 1;
+                    const newTask = {
+                        id: Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                        date: today,
+                        text: yt.text,
+                        note: yt.note || '',
+                        time: yt.time || '',
+                        done: false,
+                        order: todayTasks.length + 1,
+                        carriedFrom: yesterday,
+                        carriedDays: carriedDays
+                    };
+                    allData.push(newTask);
+                    changed = true;
+                }
+                if (changed) saveAllData(allData);
+            }
+
+            // ===== DOM =====
+            const $ = (s) => document.querySelector(s);
+            const $$ = (s) => document.querySelectorAll(s);
+
+            const clockText = $('#clockText');
+            const todayDateText = $('#todayDateText');
+            const progressLabel = $('#progressLabel');
+            const progressPercent = $('#progressPercent');
+            const progressFill = $('#progressFill');
+            const taskList = $('#taskList');
+            const quickAddInput = $('#quickAddInput');
+            const quickAddBtn = $('#quickAddBtn');
+
+            const calGrid = $('#calGrid');
+            const calMonthLabel = $('#calMonthLabel');
+            const calPrev = $('#calPrev');
+            const calNext = $('#calNext');
+            const heatmapGrid = $('#heatmapGrid');
+
+            const pieChart = $('#pieChart');
+            const statTotal = $('#statTotal');
+            const statDone = $('#statDone');
+            const statRate = $('#statRate');
+            const searchInput = $('#searchInput');
+            const searchResults = $('#searchResults');
+
+            const accentOptions = $('#accentOptions');
+            const darkModeToggle = $('#darkModeToggle');
+            const carryOverToggle = $('#carryOverToggle');
+            const soundToggle = $('#soundToggle');
+            const exportBtn = $('#exportBtn');
+            const importBtn = $('#importBtn');
+            const clearBtn = $('#clearBtn');
+
+            const addBtn = $('#addBtn');
+            const navBtns = $$('.bottom-bar .nav-btn');
+
+            const sheetOverlay = $('#sheetOverlay');
+            const sheet = $('#sheet');
+            const sheetTitle = $('#sheetTitle');
+            const sheetSubtitle = $('#sheetSubtitle');
+            const sheetTaskList = $('#sheetTaskList');
+            const sheetClose = $('#sheetClose');
+
+            const newOverlay = $('#newOverlay');
+            const newSheet = $('#newSheet');
+            const newDateLabel = $('#newDateLabel');
+            const newTaskText = $('#newTaskText');
+            const newTaskNote = $('#newTaskNote');
+            const newCancel = $('#newCancel');
+            const newSave = $('#newSave');
+            const pickerMonth = $('#pickerMonth');
+            const pickerDay = $('#pickerDay');
+            const pickerHour = $('#pickerHour');
+            const pickerMinute = $('#pickerMinute');
+            const timeToggle = $('#timeToggle');
+            const timePickerRow = $('#timePickerRow');
+
+            const contextMenu = $('#contextMenu');
+            const ctxEdit = $('#ctxEdit');
+            const ctxNote = $('#ctxNote');
+            const ctxCopyTomorrow = $('#ctxCopyTomorrow');
+            const ctxDelete = $('#ctxDelete');
+
+            // ===== 状态 =====
+            let calYear = new Date().getFullYear();
+            let calMonth = new Date().getMonth();
+            let contextTask = null;
+            let newDate = getToday();
+            let newYear = new Date().getFullYear(); // 年份固定当前年
+            let pickerValues = { month: new Date().getMonth() + 1, day: new Date().getDate(), hour: 0, minute: 0 };
+            let timeEnabled = false;
+            let audioCtx = null;
+
+            // ===== 音效 =====
+            function playClickSound() {
+                const settings = getSettings();
+                if (!settings.sound) return;
+                try {
+                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = 800 + Math.random() * 200;
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.04);
+                } catch (_) {}
+            }
+
+            // ===== 主题 =====
+            function applyTheme() {
+                const s = getSettings();
+                document.documentElement.setAttribute('data-theme', s.dark ? 'dark' : 'light');
+                if (s.accent && s.accent !== 'cream') {
+                    document.documentElement.setAttribute('data-accent', s.accent);
+                } else {
+                    document.documentElement.removeAttribute('data-accent');
+                }
+                darkModeToggle.classList.toggle('on', s.dark);
+                carryOverToggle.classList.toggle('on', s.carryOver);
+                soundToggle.classList.toggle('on', s.sound);
+                $$('.accent-dot').forEach(d => {
+                    d.classList.toggle('active', d.dataset.accent === (s.accent || 'cream'));
+                });
+            }
+
+            // ===== 时间显示 =====
+            function updateClock() {
+                const now = new Date();
+                const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+                todayDateText.textContent = now.getFullYear() + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日 星期' + weekdays[now.getDay()];
+                const hh = String(now.getHours()).padStart(2, '0');
+                const mm = String(now.getMinutes()).padStart(2, '0');
+                const ss = String(now.getSeconds()).padStart(2, '0');
+                clockText.innerHTML = hh + ':' + mm + '<span class="sec">:' + ss + '</span>';
+            }
+
+            // ===== 渲染今日 =====
+            function renderToday() {
+                const today = getToday();
+                const tasks = getTasksByDate(today);
+                const total = tasks.length;
+                const done = tasks.filter(t => t.done).length;
+                const pct = total === 0 ? 0 : Math.round(done / total * 100);
+
+                progressLabel.textContent = '今日 ' + done + '/' + total;
+                progressPercent.textContent = pct + '%';
+                progressFill.style.width = pct + '%';
+
+                if (tasks.length === 0) {
+                    taskList.innerHTML = '<div class="empty-state">今日暂无计划</div>';
+                    return;
+                }
+
+                let html = '';
+                for (const t of tasks) {
+                    let cls = 'task-card' + (t.done ? ' done' : '');
+                    let badge = '';
+                    let reminder = '';
+                    if (t.carriedFrom) {
+                        badge = '<span class="task-badge">顺延</span>';
+                        reminder = '<div class="task-reminder">您已经 ' + (t.carriedDays || 1) + ' 天未完成该计划啦！</div>';
+                    }
+                    html += '<div class="' + cls + '" data-id="' + t.id + '">';
+                    html += '<div class="drag-handle"><span></span><span></span><span></span></div>';
+                    html += '<div class="task-body">';
+                    html += '<div class="task-main">';
+                    html += '<span class="task-text">' + escapeHtml(t.text) + badge + '</span>';
+                    if (t.time) html += '<span class="task-time">' + t.time + '</span>';
+                    html += '</div>';
+                    if (t.note) html += '<div class="task-note">' + escapeHtml(t.note) + '</div>';
+                    html += reminder;
+                    html += '</div></div>';
+                }
+                taskList.innerHTML = html;
+
+                taskList.querySelectorAll('.task-card').forEach(card => {
+                    card.addEventListener('click', function(e) {
+                        if (e.target.closest('.drag-handle')) return;
+                        const id = this.dataset.id;
+                        const all = getAllData();
+                        for (const t of all) {
+                            if (t.id === id) { t.done = !t.done; break; }
+                        }
+                        saveAllData(all);
+                        renderToday();
+                    });
+                    card.addEventListener('contextmenu', function(e) {
+                        e.preventDefault();
+                        const id = this.dataset.id;
+                        const all = getAllData();
+                        const task = all.find(t => t.id === id);
+                        if (task) openContextMenu(e, task);
+                    });
+                    let pressTimer = null;
+                    card.addEventListener('touchstart', function(e) {
+                        pressTimer = setTimeout(() => {
+                            const id = this.dataset.id;
+                            const all = getAllData();
+                            const task = all.find(t => t.id === id);
+                            if (task) openContextMenu(e, task);
+                        }, 500);
+                    });
+                    card.addEventListener('touchend', () => clearTimeout(pressTimer));
+                    card.addEventListener('touchmove', () => clearTimeout(pressTimer));
+                });
+            }
+
+            function escapeHtml(s) {
+                return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            }
+
+            // ===== 右键菜单 =====
+            function openContextMenu(e, task) {
+                contextTask = task;
+                const x = e.clientX || (e.touches && e.touches[0].clientX) || 100;
+                const y = e.clientY || (e.touches && e.touches[0].clientY) || 100;
+                contextMenu.style.left = Math.min(x, window.innerWidth - 160) + 'px';
+                contextMenu.style.top = Math.min(y, window.innerHeight - 180) + 'px';
+                contextMenu.classList.add('open');
+            }
+
+            function closeContextMenu() {
+                contextMenu.classList.remove('open');
+                contextTask = null;
+            }
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.context-menu')) closeContextMenu();
+            });
+
+            ctxEdit.addEventListener('click', function() {
+                if (!contextTask) return;
+                const newText = prompt('编辑计划内容', contextTask.text);
+                if (newText !== null && newText.trim()) {
+                    const all = getAllData();
+                    for (const t of all) {
+                        if (t.id === contextTask.id) { t.text = newText.trim(); break; }
+                    }
+                    saveAllData(all);
+                    renderToday();
+                }
+                closeContextMenu();
+            });
+
+            ctxNote.addEventListener('click', function() {
+                if (!contextTask) return;
+                const newNote = prompt('备注/总结', contextTask.note || '');
+                if (newNote !== null) {
+                    const all = getAllData();
+                    for (const t of all) {
+                        if (t.id === contextTask.id) { t.note = newNote; break; }
+                    }
+                    saveAllData(all);
+                    renderToday();
+                }
+                closeContextMenu();
+            });
+
+            ctxCopyTomorrow.addEventListener('click', function() {
+                if (!contextTask) return;
+                const tomorrow = new Date(getToday() + 'T12:00:00');
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const tomorrowStr = tomorrow.getFullYear() + '-' +
+                    String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(tomorrow.getDate()).padStart(2, '0');
+                const tomorrowTasks = getTasksByDate(tomorrowStr);
+                saveTask(tomorrowStr, contextTask.text, contextTask.note, contextTask.time, false, tomorrowTasks.length + 1);
+                alert('已复制到明天 ✓');
+                closeContextMenu();
+            });
+
+            ctxDelete.addEventListener('click', function() {
+                if (!contextTask) return;
+                if (confirm('确定删除这条计划吗？')) {
+                    deleteTask(contextTask.id);
+                    renderToday();
+                }
+                closeContextMenu();
+            });
+
+            // ===== 快速添加 =====
+            function quickAdd() {
+                const text = quickAddInput.value.trim();
+                if (!text) return;
+                const today = getToday();
+                const tasks = getTasksByDate(today);
+                saveTask(today, text, '', '', false, tasks.length + 1);
+                quickAddInput.value = '';
+                renderToday();
+            }
+
+            quickAddBtn.addEventListener('click', quickAdd);
+            quickAddInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); quickAdd(); }
+            });
+
+            // ===== 日历 =====
+            function renderCalendar() {
+                const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+                const firstDay = new Date(calYear, calMonth, 1).getDay();
+                calMonthLabel.textContent = calYear + '年 ' + (calMonth + 1) + '月';
+                const today = getToday();
+
+                let html = '';
+                const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+                for (const w of weekdays) html += '<div class="weekday">' + w + '</div>';
+                for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+
+                const allData = getAllData();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                    const dayTasks = allData.filter(t => t.date === dateStr);
+                    const hasPlan = dayTasks.length > 0;
+                    const doneCount = dayTasks.filter(t => t.done).length;
+                    const total = dayTasks.length;
+                    const allDone = total > 0 && doneCount === total;
+
+                    let cls = 'cal-day';
+                    if (hasPlan) cls += ' has-plan';
+                    if (dateStr === today) cls += ' today';
+                    html += '<div class="' + cls + '" data-date="' + dateStr + '">';
+                    html += '<span class="day-num">' + d + '</span>';
+                    if (hasPlan) {
+                        if (allDone) html += '<span class="dot"></span>';
+                        else html += '<span class="dot empty-dot"></span>';
+                    }
+                    html += '</div>';
+                }
+                calGrid.innerHTML = html;
+
+                calGrid.querySelectorAll('.cal-day[data-date]').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const date = this.dataset.date;
+                        showDaySheet(date);
+                    });
+                });
+            }
+
+            function showDaySheet(date) {
+                const tasks = getTasksByDate(date);
+                sheetTitle.textContent = date;
+                const total = tasks.length;
+                const done = tasks.filter(t => t.done).length;
+                const pct = total === 0 ? 0 : Math.round(done / total * 100);
+                sheetSubtitle.textContent = total === 0 ? '暂无计划' : '完成 ' + done + '/' + total + ' · ' + pct + '%';
+
+                let html = '';
+                if (tasks.length === 0) {
+                    html = '<div class="empty-state">这一天暂无计划</div>';
+                } else {
+                    for (const t of tasks) {
+                        const icon = t.done ? '✓' : '○';
+                        const cls = t.done ? 'sheet-task done-item' : 'sheet-task';
+                        let carried = '';
+                        if (t.carriedFrom) carried = ' <span style="font-size:10px;color:var(--accent-dark);">顺延' + (t.carriedDays || 1) + '天</span>';
+                        html += '<div class="' + cls + '">';
+                        html += '<span class="st-icon">' + icon + '</span>';
+                        html += '<span class="st-text">' + escapeHtml(t.text) + carried + '</span>';
+                        if (t.time) html += '<span style="font-size:12px;color:var(--text3);">' + t.time + '</span>';
+                        html += '</div>';
+                    }
+                }
+                sheetTaskList.innerHTML = html;
+                sheetOverlay.classList.add('open');
+                sheet.classList.add('open');
+            }
+
+            function closeSheet() {
+                sheetOverlay.classList.remove('open');
+                sheet.classList.remove('open');
+            }
+
+            sheetOverlay.addEventListener('click', closeSheet);
+            sheetClose.addEventListener('click', closeSheet);
+
+            // ===== 热力图 =====
+            function renderHeatmap() {
+                const allData = getAllData();
+                const start = new Date(calYear, 0, 1);
+                const end = new Date(calYear, 11, 31);
+                let html = '';
+                let current = new Date(start);
+                while (current <= end) {
+                    const dateStr = current.getFullYear() + '-' + String(current.getMonth() + 1).padStart(2, '0') + '-' + String(current.getDate()).padStart(2, '0');
+                    const dayTasks = allData.filter(t => t.date === dateStr);
+                    const total = dayTasks.length;
+                    const done = dayTasks.filter(t => t.done).length;
+                    const pct = total === 0 ? 0 : done / total;
+                    let cls = 'heat-cell';
+                    if (total > 0) {
+                        cls += ' has-plan';
+                        if (pct >= 1) cls += ' high';
+                    }
+                    html += '<div class="' + cls + '" data-date="' + dateStr + '" title="' + dateStr + '"></div>';
+                    current.setDate(current.getDate() + 1);
+                }
+                heatmapGrid.innerHTML = html;
+
+                heatmapGrid.querySelectorAll('.heat-cell.has-plan').forEach(el => {
+                    el.addEventListener('click', function() {
+                        showDaySheet(this.dataset.date);
+                    });
+                });
+            }
+
+            // ===== 统计 =====
+            function renderStats() {
+                const allData = getAllData();
+                const total = allData.length;
+                const done = allData.filter(t => t.done).length;
+                const rate = total === 0 ? 0 : Math.round(done / total * 100);
+
+                statTotal.textContent = total;
+                statDone.textContent = done;
+                statRate.textContent = rate + '%';
+
+                const notDone = total - done;
+                const cx = 100, cy = 100, r = 80;
+                let pieHtml = '';
+                if (total === 0) {
+                    pieHtml = '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="var(--bg3)"/>';
+                    pieHtml += '<text x="' + cx + '" y="' + cy + '" class="pie-center">暂无数据</text>';
+                } else {
+                    const doneAngle = done / total * Math.PI * 2 - Math.PI / 2;
+                    const startX = cx + r * Math.cos(-Math.PI / 2);
+                    const startY = cy + r * Math.sin(-Math.PI / 2);
+                    const endX = cx + r * Math.cos(doneAngle);
+                    const endY = cy + r * Math.sin(doneAngle);
+                    const largeArc = done / total > 0.5 ? 1 : 0;
+
+                    if (done > 0) {
+                        pieHtml += '<path d="M ' + cx + ' ' + cy + ' L ' + startX + ' ' + startY + ' A ' + r + ' ' + r + ' 0 ' + largeArc + ' 1 ' + endX + ' ' + endY + ' Z" fill="var(--accent)"/>';
+                    }
+                    if (notDone > 0) {
+                        pieHtml += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="var(--bg3)" stroke-width="2" opacity="0.6"/>';
+                    }
+                    pieHtml += '<text x="' + cx + '" y="' + cy + '" class="pie-center">' + rate + '%</text>';
+                }
+                pieChart.innerHTML = pieHtml;
+            }
+
+            // ===== 搜索 =====
+            function doSearch() {
+                const q = searchInput.value.trim().toLowerCase();
+                if (!q) { searchResults.innerHTML = ''; return; }
+                const allData = getAllData();
+                const results = allData.filter(t =>
+                    t.text.toLowerCase().includes(q) || t.date.includes(q)
+                ).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30);
+
+                if (results.length === 0) {
+                    searchResults.innerHTML = '<div class="empty-state">没有找到相关记录</div>';
+                    return;
+                }
+
+                let html = '';
+                for (const t of results) {
+                    html += '<div class="search-result-item" data-date="' + t.date + '">';
+                    html += '<div class="res-date">' + t.date + (t.time ? ' ' + t.time : '') + '</div>';
+                    html += escapeHtml(t.text);
+                    html += '</div>';
+                }
+                searchResults.innerHTML = html;
+
+                searchResults.querySelectorAll('.search-result-item').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const date = this.dataset.date;
+                        switchPage('calendar');
+                        calYear = parseInt(date.split('-')[0]);
+                        calMonth = parseInt(date.split('-')[1]) - 1;
+                        renderCalendar();
+                        renderHeatmap();
+                        setTimeout(() => showDaySheet(date), 300);
+                    });
+                });
+            }
+
+            searchInput.addEventListener('input', doSearch);
+
+            // ===== 新建弹层 =====
+            function buildPicker(col, values, selectedVal, suffix) {
+                let html = '';
+                for (const v of values) {
+                    const display = suffix ? v + suffix : v;
+                    html += '<div class="picker-item' + (v === selectedVal ? ' selected' : '') + '" data-val="' + v + '">' + display + '</div>';
+                }
+                col.innerHTML = html;
+                col.scrollTop = 0;
+                setTimeout(() => {
+                    const items = col.querySelectorAll('.picker-item');
+                    for (let i = 0; i < items.length; i++) {
+                        if (parseInt(items[i].dataset.val) === selectedVal) {
+                            col.scrollTop = i * 40 - 40;
+                            break;
+                        }
+                    }
+                }, 50);
+            }
+
+            function updatePickerValues() {
+                const m = pickerValues.month;
+                const daysInMonth = new Date(newYear, m, 0).getDate();
+                if (pickerValues.day > daysInMonth) pickerValues.day = daysInMonth;
+
+                const months = [];
+                for (let i = 1; i <= 12; i++) months.push(i);
+                const days = [];
+                for (let i = 1; i <= daysInMonth; i++) days.push(i);
+                const hours = [];
+                for (let i = 0; i <= 23; i++) hours.push(i);
+                const minutes = [];
+                for (let i = 0; i <= 59; i++) minutes.push(i);
+
+                buildPicker(pickerMonth, months, pickerValues.month, '月');
+                buildPicker(pickerDay, days, pickerValues.day, '日');
+                buildPicker(pickerHour, hours, pickerValues.hour, '时');
+                buildPicker(pickerMinute, minutes, pickerValues.minute, '分');
+            }
+
+            function readPickerValues() {
+                function getSelected(col) {
+                    const items = col.querySelectorAll('.picker-item');
+                    const scrollTop = col.scrollTop;
+                    const idx = Math.round(scrollTop / 40);
+                    const clamped = Math.max(0, Math.min(idx, items.length - 1));
+                    return parseInt(items[clamped].dataset.val);
+                }
+                pickerValues.month = getSelected(pickerMonth);
+                pickerValues.day = getSelected(pickerDay);
+                pickerValues.hour = getSelected(pickerHour);
+                pickerValues.minute = getSelected(pickerMinute);
+            }
+
+            function attachScrollSound(col) {
+                let lastIdx = -1;
+                col.addEventListener('scroll', function() {
+                    const idx = Math.round(this.scrollTop / 40);
+                    if (idx !== lastIdx) {
+                        lastIdx = idx;
+                        playClickSound();
+                    }
+                });
+            }
+
+            function openNewSheet(date) {
+                newDate = date || getToday();
+                const d = new Date(newDate + 'T12:00:00');
+                newYear = d.getFullYear();
+                pickerValues = {
+                    month: d.getMonth() + 1,
+                    day: d.getDate(),
+                    hour: d.getHours(),
+                    minute: d.getMinutes()
+                };
+                // 默认关闭时间
+                timeEnabled = false;
+                timeToggle.classList.remove('on');
+                timePickerRow.style.display = 'none';
+
+                newTaskText.value = '';
+                newTaskNote.value = '';
+                newDateLabel.textContent = newYear + '年 · 选择日期';
+                updatePickerValues();
+                newOverlay.classList.add('open');
+                newSheet.classList.add('open');
+
+                [pickerMonth, pickerDay, pickerHour, pickerMinute].forEach(attachScrollSound);
+
+                [pickerMonth, pickerDay, pickerHour, pickerMinute].forEach(col => {
+                    col.addEventListener('scroll', function() {
+                        clearTimeout(this._timer);
+                        this._timer = setTimeout(() => {
+                            readPickerValues();
+                            updatePickerValues();
+                        }, 120);
+                    });
+                });
+            }
+
+            function closeNewSheet() {
+                newOverlay.classList.remove('open');
+                newSheet.classList.remove('open');
+            }
+
+            newOverlay.addEventListener('click', closeNewSheet);
+            newCancel.addEventListener('click', closeNewSheet);
+
+            timeToggle.addEventListener('click', function() {
+                timeEnabled = !timeEnabled;
+                timeToggle.classList.toggle('on', timeEnabled);
+                timePickerRow.style.display = timeEnabled ? 'flex' : 'none';
+                if (timeEnabled) {
+                    // 重新构建时间滚轮
+                    setTimeout(() => {
+                        buildPicker(pickerHour, Array.from({length:24}, (_,i) => i), pickerValues.hour, '时');
+                        buildPicker(pickerMinute, Array.from({length:60}, (_,i) => i), pickerValues.minute, '分');
+                    }, 50);
+                }
+            });
+
+            newSave.addEventListener('click', function() {
+                readPickerValues();
+                const text = newTaskText.value.trim();
+                if (!text) { alert('请填写计划内容'); return; }
+                const dateStr = newYear + '-' +
+                    String(pickerValues.month).padStart(2, '0') + '-' +
+                    String(pickerValues.day).padStart(2, '0');
+                let timeStr = '';
+                if (timeEnabled) {
+                    timeStr = String(pickerValues.hour).padStart(2, '0') + ':' + String(pickerValues.minute).padStart(2, '0');
+                }
+                const tasks = getTasksByDate(dateStr);
+                saveTask(dateStr, text, newTaskNote.value.trim(), timeStr, false, tasks.length + 1);
+                closeNewSheet();
+                if (dateStr === getToday()) {
+                    switchPage('today');
+                    renderToday();
+                } else {
+                    switchPage('calendar');
+                    calYear = newYear;
+                    calMonth = pickerValues.month - 1;
+                    renderCalendar();
+                    renderHeatmap();
+                }
+            });
+
+            // ===== 设置 =====
+            accentOptions.addEventListener('click', function(e) {
+                const dot = e.target.closest('.accent-dot');
+                if (!dot) return;
+                const s = getSettings();
+                s.accent = dot.dataset.accent;
+                saveSettings(s);
+                applyTheme();
+            });
+
+            darkModeToggle.addEventListener('click', function() {
+                const s = getSettings();
+                s.dark = !s.dark;
+                saveSettings(s);
+                applyTheme();
+            });
+
+            carryOverToggle.addEventListener('click', function() {
+                const s = getSettings();
+                s.carryOver = !s.carryOver;
+                saveSettings(s);
+                applyTheme();
+            });
+
+            soundToggle.addEventListener('click', function() {
+                const s = getSettings();
+                s.sound = !s.sound;
+                saveSettings(s);
+                applyTheme();
+            });
+
+            exportBtn.addEventListener('click', function() {
+                const data = { records: getAllData(), settings: getSettings() };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'my_plans_backup_' + getToday() + '.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            importBtn.addEventListener('click', function() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        try {
+                            const data = JSON.parse(ev.target.result);
+                            if (data.records && Array.isArray(data.records)) {
+                                saveAllData(data.records);
+                                if (data.settings) saveSettings(data.settings);
+                                alert('导入成功 ✓');
+                                applyTheme();
+                                renderAll();
+                            } else {
+                                alert('文件格式不正确');
+                            }
+                        } catch (_) {
+                            alert('文件格式不正确');
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            });
+
+            clearBtn.addEventListener('click', function() {
+                if (confirm('确定清除全部数据吗？此操作不可恢复。')) {
+                    if (confirm('再次确认：所有计划和记录将被删除。')) {
+                        localStorage.removeItem(STORAGE_KEY);
+                        renderAll();
+                        alert('已清除');
+                    }
+                }
+            });
+
+            // ===== 页面切换 =====
+            function switchPage(pageId) {
+                $$('.page').forEach(p => p.classList.remove('active'));
+                const target = document.getElementById('page-' + pageId);
+                if (target) target.classList.add('active');
+                navBtns.forEach(b => b.classList.toggle('active', b.dataset.page === pageId));
+                if (pageId === 'today') renderToday();
+                if (pageId === 'calendar') { renderCalendar(); renderHeatmap(); }
+                if (pageId === 'stats') { renderStats(); searchInput.value = ''; searchResults.innerHTML = ''; }
+            }
+
+            navBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchPage(this.dataset.page);
+                });
+            });
+
+            addBtn.addEventListener('click', function() {
+                openNewSheet(getToday());
+            });
+
+            calPrev.addEventListener('click', function() {
+                calMonth--;
+                if (calMonth < 0) { calMonth = 11; calYear--; }
+                renderCalendar();
+                renderHeatmap();
+            });
+
+            calNext.addEventListener('click', function() {
+                calMonth++;
+                if (calMonth > 11) { calMonth = 0; calYear++; }
+                renderCalendar();
+                renderHeatmap();
+            });
+
+            // ===== 初始化 =====
+            function renderAll() {
+                renderToday();
+                renderCalendar();
+                renderHeatmap();
+                renderStats();
+            }
+
+            function init() {
+                applyTheme();
+                carryOverTasks();
+                renderAll();
+                updateClock();
+                setInterval(updateClock, 1000);
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        closeSheet();
+                        closeNewSheet();
+                        closeContextMenu();
+                    }
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+</body>
+</html>
